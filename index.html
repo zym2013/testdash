@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazing Luogu Dash</title>
+    <link rel="stylesheet" href="https://cdn.jsdmirror.com/npm/lxgw-wenkai-screen-webfont@1.7.0/style.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdmirror.com/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <style>
+        @font-face {
+            font-family: 'Caveat';
+            src: url('https://cdn.jsdmirror.com/gh/googlefonts/caveat/fonts/ttf/Caveat-Regular.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap
+        }
+
+        body {
+            font-family: LXGW Wenkai Screen;
+            margin: 0;
+            min-height: 100vh;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+
+        .header {
+            color: #555;
+            padding: 15px 0;
+            background: linear-gradient(90deg, #ffffff 0%, #f0f8ff 100%);
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+            margin-left: -20px !important;
+            top: 0;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            margin-left: 20px;
+            font-family: 'Caveat';
+        }
+
+        .sidebar {
+            width: 70px;
+            height: calc(100vh - 70px);
+            position: fixed;
+            background: linear-gradient(180deg, #ffffff 0%, #f0f8ff 100%);
+            border-right: 2px solid #e6f3ff;
+            box-shadow: 2px 0 10px rgba(135, 206, 250, 0.1);
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            /* backdrop-filter: blur(10px); */
+            z-index: 1000;
+            margin-top: 45px;
+            margin-left: -20px;
+            padding-top: 10px;
+            color: #2c3e50;
+        }
+
+        .sidebar.expanded {
+            width: 250px
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 23px;
+            cursor: pointer;
+        }
+
+        .sidebar-item i {
+            margin-right: 15px;
+            font-size: 18px;
+            min-width: 20px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-item span {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar.expanded .sidebar-item span {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .sidebar-item:hover {
+            background-color: #f9f9f9
+        }
+
+        .content-area {
+            margin-top: 50px;
+            margin-left: 60px !important;
+            padding: 20px;
+            margin-bottom: 20px;
+            /* 底部留白 */
+        }
+
+        /* 新增：设置页内部导航栏 */
+        .settings-nav {
+            position: fixed;
+            top: 65px;
+            /* 紧跟在 header 下方 */
+            left: 70px;
+            /* 跟随 sidebar 宽度 */
+            right: 0;
+            /* 延伸到右侧 */
+            background: linear-gradient(90deg, #f8faff 0%, #e6f3ff 100%);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            z-index: 950;
+            /* 低于 header 和 sidebar */
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* 与 sidebar 动画同步 */
+        }
+
+        .settings-nav.expanded {
+            /* left: 250px; 侧边栏展开时，导航栏也向右移动 */
+        }
+
+        .settings-nav-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #555;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .settings-nav-item:hover {
+            background-color: #e0edff;
+        }
+
+        .settings-nav-item.active {
+            color: #3498db;
+            border-bottom: 2px solid #3498db;
+            background-color: #d6e7ff;
+        }
+
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        .settings-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .settings-section h3 {
+            margin-top: 0;
+            color: #34495e;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .setting-item {
+            margin-bottom: 15px;
+            padding: 10px 0;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .setting-item input[type="checkbox"] {
+            margin-right: 8px;
+        }
+
+        .setting-item input[type="text"],
+        .setting-item input[type="number"],
+        .setting-item input[type="url"],
+        .setting-item select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: LXGW Wenkai Screen;
+            box-sizing: border-box;
+        }
+
+        .setting-item textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: LXGW Wenkai Screen;
+            box-sizing: border-box;
+            resize: vertical;
+        }
+
+        .save-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            font-family: LXGW Wenkai Screen;
+        }
+
+        .save-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .status-message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .status-message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .status-message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .contributor-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .contributor-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 15px;
+            object-fit: cover;
+        }
+
+        .contributor-info {
+            flex: 1;
+        }
+
+        .contributor-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .contributor-contribution {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="logo">Amazing Luogu Dashboard</div>
+    </header>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-item active" data-page="home">
+            <i class="fas fa-home"></i><span>首页</span>
+        </div>
+        <div class="sidebar-item" data-page="settings">
+            <i class="fas fa-cog"></i><span>设置</span>
+        </div>
+        <div class="sidebar-item" data-page="thanks">
+            <i class="fas fa-heart"></i><span>鸣谢</span>
+        </div>
+    </div>
+
+    <div class="settings-nav" id="settings-nav" style="display: none;">
+        <div class="settings-nav-item active" data-section="general">常规设置</div>
+        <div class="settings-nav-item" data-section="chat">聊天设置</div>
+        <div class="settings-nav-item" data-section="appearance">外观设置</div>
+        <div class="settings-nav-item" data-section="advanced">高级设置</div>
+    </div>
+
+    <div class="content-area">
+        <div id="home-section" class="page-section active">
+            <h2>👏Hello, Amazing Luogu 用户~👏</h2>
+            <p>这里是 Amazing Luogu 的设置板。</p>
+        </div>
+
+        <div id="thanks-section" class="page-section">
+            <h2>鸣谢</h2>
+            <p>感谢 TA 们为 Amazing Luogu 建设添砖加瓦！（排名不分先后吗）</p>
+            <div id="thanks-list"></div>
+        </div>
+
+        <!-- 设置页内容 -->
+        <div id="settings-section" class="page-section">
+            <!-- 常规设置 -->
+            <div class="settings-section" id="general-section">
+                <h3><i class="fas fa-cog"></i> 常规设置</h3>
+                <!-- <div class="setting-item">
+                    <label><input type="checkbox" id="amlPanelOpen"> 开启插件面板</label>
+                </div> -->
+                <div class="setting-item">
+                    <label><input type="checkbox" id="amlProblemColors"> 题目难度染色</label>
+                </div>
+                <!-- <div class="setting-item">
+                    <label><input type="checkbox" id="amlCoverRemoval"> 移除题面背景</label>
+                </div> -->
+                <div class="setting-item">
+                    <label><input type="checkbox" id="amlAutoCheckIn"> 自动签到</label>
+                </div>
+                <div class="setting-item">
+                    <label><input type="checkbox" id="amlMemoEnabled"> 备忘录功能</label>
+                </div>
+                <div class="setting-item">
+                    <label><input type="checkbox" id="amlButtonUnlocker"> 比赛报名按钮解锁器</label>
+                </div>
+                <div class="setting-item">
+                    <label><input type="checkbox" id="amlProblemJumpStyling"> 首页问题跳转样式优化</label>
+                </div>
+                <div class="setting-item">
+                    <label><input type="checkbox" id="amlCodeFolding"> 长代码自动折叠</label>
+                </div>
+                <div class="setting-item">
+                    <label><input type="checkbox" id="amlProblemJumper"> 题目跳转器（双击）</label>
+                </div>
+                <div class="setting-item">
+                    <label><input type="checkbox" id="amlSaveStationJumper"> 自动跳转保存站</label>
+                </div>
+                <!-- <div class="setting-item">
+                    <label><input type="checkbox" id="amlCaptchaAutofill"> 验证码自动填充</label>
+                </div> -->
+                <div class="setting-item">
+                    <label><input type="checkbox" id="amlAutoExpandBenben"> 首页犇犇自动展开与屏蔽</label>
+                </div>
+            </div>
+
+            <!-- 聊天设置 -->
+            <div class="settings-section" id="chat-section" style="display: none;">
+                <h3><i class="fas fa-comments"></i> 聊天设置</h3>
+                <div class="setting-item">
+                    <label><input type="checkbox" id="amlChatMarkdown"> 启用 Markdown 渲染</label>
+                </div>
+                <div class="setting-item">
+                    <label><input type="checkbox" id="amlChatNotificationEnabled"> 启用私信通知弹窗</label>
+                </div>
+                <div class="setting-item">
+                    <label><input type="checkbox" id="amlEmojiRenderingEnabled"> 启用表情包渲染</label>
+                </div>
+                <!-- <div class="setting-item">
+                    <label><input type="checkbox" id="amlAutoReplyEnabled"> 启用自动回复</label>
+                </div>
+                <div class="setting-item" id="aml-autoReply-section" style="display: none;">
+                    <label>自动回复消息 (普通模式)</label>
+                    <input type="text" id="amlAutoReplyNormalMessage" placeholder="输入自动回复内容...">
+                </div>
+                <div class="setting-item" id="aml-autoReply-section-focus" style="display: none;">
+                    <label>自动回复消息 (专注模式)</label>
+                    <input type="text" id="amlAutoReplyFocusModeMessage" placeholder="输入专注模式自动回复内容...">
+                </div> -->
+                <div class="setting-item" id="aml-autoReply-disabled-notice">
+                    <!-- <em>启用自动回复后，此处设置生效。</em> -->
+                    <em>发现自动回复功能可能会导致私信被封，该功能已在 <strong>0.6.7</strong> 版本停用。</em>
+                </div>
+            </div>
+
+            <!-- 外观设置 -->
+            <div class="settings-section" id="appearance-section" style="display: none;">
+                <h3><i class="fas fa-palette"></i> 外观设置</h3>
+                <div class="setting-item">
+                    <label><input type="checkbox" id="amlCustomStyleEnabled"> 启用自定义样式</label>
+                </div>
+                <div class="setting-item" id="aml-customcss-section" style="display: none;">
+                    <label>自定义样式 (CSS)</label>
+                    <textarea id="amlCustomCSS" rows="6" placeholder="在此处输入您的自定义 CSS 代码..."></textarea>
+                    <label for="amlCustomCSSPosition" style="margin-top: 8px; display: inline-block;">CSS 注入位置</label>
+                    <select id="amlCustomCSSPosition">
+                        <option value="head">head (默认)</option>
+                        <option value="body">body</option>
+                    </select>
+                </div>
+                <div class="setting-item" id="aml-customcss-disabled-notice">
+                    <em>启用自定义样式后，此处设置生效。</em>
+                </div>
+                <div class="setting-item">
+                    <label><input type="checkbox" id="amlCustomFontEnabled"> 启用自定义字体加载</label>
+                </div>
+                <div class="setting-item" id="aml-customfont-section" style="display: none;">
+                    <label>自定义字体 URL</label>
+                    <input type="text" id="amlCustomFontURL" placeholder="例如: https://example.com/font.woff2">
+                    <div style="margin-top: 6px; font-size: 0.85em; color: #aaa;">
+                        提示：并不是所有的字体链接都支持，目前只支持引用一个字体，加载后可在「自定义样式」中使用 <code>font-family: "AML-CustomFont";</code>
+                    </div>
+                </div>
+                <div class="setting-item" id="aml-customfont-disabled-notice">
+                    <em>启用自定义字体后，此处设置生效。</em>
+                </div>
+            </div>
+
+            <!-- 高级设置 -->
+            <div class="settings-section" id="advanced-section" style="display: none;">
+                <h3><i class="fas fa-sliders-h"></i> 高级设置</h3>
+                <!-- <div class="setting-item">
+                    <label><input type="checkbox" id="amlUserFinderEnabled"> 用户页查找器</label>
+                </div> -->
+                <div class="setting-item">
+                    <label><input type="checkbox" id="amlDefaultCodeEnabled"> 启用缺省源</label>
+                </div>
+                <div class="setting-item" id="aml-defaultcode-section" style="display: none;">
+                    <label>默认代码模板</label>
+                    <textarea id="amlDefaultCodeContent" rows="4" placeholder="输入您的默认代码模板..."></textarea>
+                </div>
+                <div class="setting-item" id="aml-defaultcode-disabled-notice">
+                    <em>启用缺省源后，此处设置生效。</em>
+                </div>
+                <div class="setting-item">
+                    <label><input type="checkbox" id="amlFocusModeEnabled"> 专注模式</label>
+                </div>
+                <div class="setting-item" id="aml-focusmode-section" style="display: none;">
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideChat"> 专注模式下隐藏聊天</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideNotification"> 专注模式下隐藏通知</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideArticle"> 专注模式下隐藏文章</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHidePaste"> 专注模式下隐藏剪贴板</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideSolution"> 专注模式下隐藏题解</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideContest"> 专注模式下隐藏比赛</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideUser"> 专注模式下隐藏用户主页/设置</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideTicket"> 专注模式下隐藏工单</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideHelp"> 专注模式下隐藏帮助中心</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideFooter"> 专注模式下隐藏页脚多余部分</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideHome"> 专注模式下隐藏首页部分内容</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideAD"> 专注模式下隐藏首页广告（保留运势）</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHidePunchAndAd"> 专注模式下隐藏首页运势和广告</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHidediscuss"> 专注模式下隐藏讨论</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideFriendLinks"> 专注模式下隐藏首页友情链接</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideTeam"> 专注模式下隐藏团队</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideTag"> 专注模式下隐藏标签</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideThemeList"> 专注模式下隐藏主题商店</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideImageHosting"> 专注模式下隐藏图床</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideRank"> 专注模式下隐藏排名</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideJudgement"> 专注模式下隐藏评测</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHidePage"> 专注模式下禁用指定页面</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideLinksButtons"> 专注模式下隐藏导航栏链接/按钮</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideSidebarLeft"> 专注模式下隐藏左侧边栏部分内容</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideSidebarRight"> 专注模式下隐藏右侧边栏部分内容</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideBenben"> 专注模式下隐藏犇犇</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideBenbenInput"> 专注模式下隐藏犇犇输入框</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideBenbenMore"> 专注模式下隐藏犇犇“加载更多”</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideProblemStats"> 专注模式下隐藏题目页统计信息</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideProblemSolutions"> 专注模式下隐藏题目页题解链接</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideProblemTickets"> 专注模式下隐藏题目页反馈链接</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideProblemProviders"> 专注模式下隐藏题目页提供者</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideProblemPersonalList"> 专注模式下隐藏题目页加入个人题单</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideProblemTeamList"> 专注模式下隐藏题目页加入团队题单</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideProblemDiscuss"> 专注模式下隐藏题目页讨论区</label>
+                    </div>
+                    <div class="setting-item">
+                        <label><input type="checkbox" id="amlFocusModeHideProblemTags"> 专注模式下隐藏题目页标签</label>
+                    </div>
+                </div>
+                <div class="setting-item" id="aml-focusmode-disabled-notice">
+                    <em>启用专注模式后，此处设置生效。</em>
+                </div>
+                <!-- <div class="setting-item">
+                    <label><input type="checkbox" id="amlArticleCommentManager"> 文章评论管理</label>
+                </div> -->
+                <!-- <div class="setting-item">
+                    <label>OCR API 端点</label>
+                    <input type="text" id="amlCaptchaOCREndpoint" placeholder="输入 OCR API 地址...">
+                </div> -->
+                <div class="setting-item">
+                    <label>犇犇屏蔽用户 ID (逗号分隔)</label>
+                    <textarea id="amlBenbenBlockedUids" rows="2" placeholder="例如: 1,2,3"></textarea>
+                </div>
+            </div>
+
+            <button class="save-btn" onclick="saveSettings()">保存设置</button>
+            <div class="status-message" id="statusMessage"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('giveuid', function (e) {
+            alert('收到插件消息:', e.detail);
+        });
+
+        // 默认设置
+        const defaultSettings = {
+            amlPanelOpen: true,
+            amlChatMarkdown: true,
+            amlProblemColors: true,
+            amlCoverRemoval: false,
+            amlAutoCheckIn: false,
+            amlMemoEnabled: false,
+            amlButtonUnlocker: false,
+            amlProblemJumpStyling: false,
+            amlCodeFolding: true,
+            amlProblemJumper: true,
+            amlSaveStationJumper: true,
+            amlCaptchaAutofill: false,
+            amlAutoExpandBenben: false,
+            amlAutoReplyEnabled: false,
+            amlAutoReplyNormalMessage: '已经提示该用户，请耐心等待 TA 的回复！',
+            amlAutoReplyFocusModeMessage: '该用户开启了专注模式认真学术，可能暂时无法回复您的私信！',
+            amlCustomStyleEnabled: true,
+            amlCustomCSS: '',
+            amlCustomCSSPosition: 'head',
+            amlCustomFontEnabled: true,
+            amlCustomFontURL: '',
+            amlUserFinderEnabled: false,
+            amlDefaultCodeEnabled: true,
+            amlDefaultCodeContent: '',
+            amlFocusModeEnabled: false,
+            amlFocusModeHideChat: false,
+            amlFocusModeHideNotification: false,
+            amlFocusModeHideArticle: false,
+            amlFocusModeHidePaste: false,
+            amlFocusModeHideSolution: false,
+            amlFocusModeHideContest: false,
+            amlFocusModeHideUser: false,
+            amlFocusModeHideTicket: false,
+            amlFocusModeHideHelp: false,
+            amlFocusModeHideFooter: false,
+            amlFocusModeHideHome: false,
+            amlFocusModeHideAD: false,
+            amlFocusModeHidePunchAndAd: false,
+            amlFocusModeHidediscuss: false,
+            amlFocusModeHideFriendLinks: false,
+            amlFocusModeHideTeam: false,
+            amlFocusModeHideTag: false,
+            amlFocusModeHideThemeList: false,
+            amlFocusModeHideImageHosting: false,
+            amlFocusModeHideRank: false,
+            amlFocusModeHideJudgement: false,
+            amlFocusModeHidePage: false,
+            amlFocusModeHideLinksButtons: false,
+            amlFocusModeHideSidebarLeft: false,
+            amlFocusModeHideSidebarRight: false,
+            amlFocusModeHideBenben: false,
+            amlFocusModeHideBenbenInput: false,
+            amlFocusModeHideBenbenMore: false,
+            amlFocusModeHideProblemStats: false,
+            amlFocusModeHideProblemSolutions: false,
+            amlFocusModeHideProblemTickets: false,
+            amlFocusModeHideProblemProviders: false,
+            amlFocusModeHideProblemPersonalList: false,
+            amlFocusModeHideProblemTeamList: false,
+            amlFocusModeHideProblemDiscuss: false,
+            amlFocusModeHideProblemTags: false,
+            amlArticleCommentManager: false,
+            amlCaptchaOCREndpoint: 'http://8.140.166.24:44963/?base64=',
+            amlBenbenBlockedUids: '',
+            amlChatNotificationEnabled: true,
+            amlEmojiRenderingEnabled: true,
+        };
+
+        // 页面加载时恢复设置
+        document.addEventListener('DOMContentLoaded', function () {
+            loadSettings();
+            setupSidebar();
+            setupSettingsNav(); // 初始化设置页导航栏
+            renderThanksPage(); // 渲染鸣谢页
+
+            // 为需要动态显示/隐藏的复选框添加监听
+            ['amlAutoReplyEnabled', 'amlCustomStyleEnabled', 'amlCustomFontEnabled', 'amlDefaultCodeEnabled', 'amlFocusModeEnabled'].forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.addEventListener('change', updateConditionalSettings);
+                }
+            });
+        });
+
+        function setupSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const settingsNav = document.getElementById('settings-nav'); // 获取新的导航栏
+            if (sidebar) {
+                // 鼠标悬停/离开展开/收起
+                sidebar.addEventListener('mouseenter', function () {
+                    sidebar.classList.add('expanded');
+                    document.body.classList.add('sidebar-expanded');
+                    settingsNav.classList.add('expanded'); // 同时移动导航栏
+                });
+                sidebar.addEventListener('mouseleave', function () {
+                    sidebar.classList.remove('expanded');
+                    document.body.classList.remove('sidebar-expanded');
+                    settingsNav.classList.remove('expanded'); // 同时移动导航栏
+                });
+
+                // 触摸事件展开/收起 (适用于移动端)
+                let touchStartTime;
+                sidebar.addEventListener('touchstart', function (event) {
+                    touchStartTime = event.timeStamp;
+                });
+                sidebar.addEventListener('touchend', function (event) {
+                    if (event.timeStamp - touchStartTime < 200) { // 简单判断为点击
+                        if (sidebar.classList.contains('expanded')) {
+                            sidebar.classList.remove('expanded');
+                            document.body.classList.remove('sidebar-expanded');
+                            settingsNav.classList.remove('expanded'); // 同时移动导航栏
+                        } else {
+                            sidebar.classList.add('expanded');
+                            document.body.classList.add('sidebar-expanded');
+                            settingsNav.classList.add('expanded'); // 同时移动导航栏
+                        }
+                    }
+                });
+
+                // 侧边栏项目点击切换页面
+                sidebar.querySelectorAll('.sidebar-item').forEach(item => {
+                    item.addEventListener('click', function () {
+                        const targetPage = this.getAttribute('data-page');
+                        showPage(targetPage);
+                        // 更新侧边栏激活状态
+                        sidebar.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                        this.classList.add('active');
+                    });
+                });
+            }
+        }
+
+        // 新增：设置页内部导航栏功能
+        function setupSettingsNav() {
+            const navItems = document.querySelectorAll('.settings-nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function () {
+                    const targetSection = this.getAttribute('data-section');
+                    showSection(targetSection);
+                    // 更新导航栏激活状态
+                    navItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        }
+
+        function showPage(pageName) {
+            // 隐藏所有页面
+            document.querySelectorAll('.page-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            // 隐藏设置页导航栏
+            document.getElementById('settings-nav').style.display = 'none';
+            // 显示目标页面
+            document.getElementById(`${pageName}-section`).classList.add('active');
+
+            // 如果切换到设置页，确保内部设置部分正确显示，并显示内部导航栏
+            const contentArea = document.querySelector('div.content-area');
+            if (pageName === 'settings') {
+                contentArea.style.setProperty("margin-top", "120px", "important"); // 设置页需要顶部留白
+                document.getElementById('settings-nav').style.display = 'flex'; // 显示内部导航栏
+                // 重新应用条件显示逻辑，确保当前设置项正确显示
+                updateConditionalSettings();
+            } else {
+                contentArea.style.setProperty("margin-top", "50px", "important"); // 首页等其他页面的默认留白
+            }
+        }
+
+        // 修改：切换显示的设置部分 (在设置页内部)
+        function showSection(sectionName) {
+            if (!document.getElementById('settings-section').classList.contains('active')) {
+                // 如果设置页未激活，先激活设置页
+                showPage('settings');
+                // 然后找到对应的侧边栏项并激活（虽然这里没有内部侧边栏项，但逻辑保持一致）
+            }
+            // 隐藏所有设置部分
+            document.querySelectorAll('#settings-section .settings-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            // 显示选中的部分
+            document.getElementById(`${sectionName}-section`).style.display = 'block';
+        }
+
+        function loadSettings() {
+            const savedSettings = JSON.parse(localStorage.getItem('aml_settings') || '{}');
+            const settings = { ...defaultSettings, ...savedSettings };
+
+            Object.keys(settings).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    if (element.type === 'checkbox') {
+                        element.checked = settings[key];
+                    } else {
+                        element.value = settings[key];
+                    }
+                }
+            });
+
+            // 根据初始状态显示/隐藏相关设置项
+            updateConditionalSettings();
+        }
+
+        function saveSettings() {
+            const settings = {};
+            Object.keys(defaultSettings).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    if (element.type === 'checkbox') {
+                        settings[key] = element.checked;
+                    } else {
+                        settings[key] = element.value;
+                    }
+                }
+            });
+
+            try {
+                localStorage.setItem('aml_settings', JSON.stringify(settings));
+                // 更新条件显示
+                updateConditionalSettings();
+                showStatus('设置已成功保存到本地！', 'success');
+            } catch (e) {
+                console.error('保存设置失败:', e);
+                showStatus('保存失败: ' + e.message, 'error');
+            }
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            if (statusDiv) {
+                statusDiv.textContent = message;
+                statusDiv.className = 'status-message ' + type; // 设置成功或错误的类
+                // 3秒后自动隐藏
+                setTimeout(() => {
+                    statusDiv.style.display = 'none';
+                }, 3000);
+            }
+        }
+
+        function updateConditionalSettings() {
+            const settings = JSON.parse(localStorage.getItem('aml_settings') || JSON.stringify(defaultSettings));
+            // 聊天设置
+            // document.getElementById('aml-autoReply-section').style.display = settings.amlAutoReplyEnabled ? 'block' : 'none';
+            // document.getElementById('aml-autoReply-section-focus').style.display = settings.amlAutoReplyEnabled ? 'block' : 'none';
+            // document.getElementById('aml-autoReply-disabled-notice').style.display = settings.amlAutoReplyEnabled ? 'none' : 'block';
+
+            // 外观设置
+            document.getElementById('aml-customcss-section').style.display = settings.amlCustomStyleEnabled ? 'block' : 'none';
+            document.getElementById('aml-customcss-disabled-notice').style.display = settings.amlCustomStyleEnabled ? 'none' : 'block';
+            document.getElementById('aml-customfont-section').style.display = settings.amlCustomFontEnabled ? 'block' : 'none';
+            document.getElementById('aml-customfont-disabled-notice').style.display = settings.amlCustomFontEnabled ? 'none' : 'block';
+
+            // 高级设置
+            document.getElementById('aml-defaultcode-section').style.display = settings.amlDefaultCodeEnabled ? 'block' : 'none';
+            document.getElementById('aml-defaultcode-disabled-notice').style.display = settings.amlDefaultCodeEnabled ? 'none' : 'block';
+            document.getElementById('aml-focusmode-section').style.display = settings.amlFocusModeEnabled ? 'block' : 'none';
+            document.getElementById('aml-focusmode-disabled-notice').style.display = settings.amlFocusModeEnabled ? 'none' : 'block';
+        }
+        // 新增：渲染鸣谢页
+        function renderThanksPage() {
+            const thanksList = document.getElementById('thanks-list');
+            if (!thanksList) return;
+
+            // 示例数据，实际项目中应从配置文件或 API 获取
+            const contributors = [
+                { id: 749539, name: '__yun__', contribution: '报告许多 BUG 与提出许多建议' },
+                { id: 542128, name: 'wing_heart', contribution: '报告 BUG 与提出建议' },
+                { id: 613794, name: 'jianhe', contribution: '报告 BUG 与提出建议' },
+                { id: 365751, name: 'Mr_罗', contribution: '提供了删除广告并将运势居中的代码~' },
+                { id: 1047592, name: 'mondayrain', contribution: '报告 BUG 与提出建议' },
+                { id: 466596, name: 'MorningStarCzy', contribution: '报告 BUG 与提出建议' },
+                { id: 1293314, name: 'Lqs888', contribution: '报告 BUG 与提出建议' },
+                { id: 1025097, name: 'koukou', contribution: '报告 BUG 与提出建议' },
+                // { id: 61374, name: 'Lqs888', contribution: '报告 BUG 与提出建议' },
+                // { id: 613794, name: 'Lqs888', contribution: '报告 BUG 与提出建议' },
+                // { id: 613794, name: 'Lqs888', contribution: '报告 BUG 与提出建议' },
+                // { id: 613794, name: 'Lqs888', contribution: '报告 BUG 与提出建议' },
+                // { id: 613794, name: 'Lqs888', contribution: '报告 BUG 与提出建议' },
+                // { id: 613794, 9name: 'Lqs888', contribution: '报告 BUG 与提出建议' },
+                // ... 更多贡献者
+            ];
+
+            thanksList.innerHTML = ''; // 清空现有内容
+
+            contributors.forEach(contributor => {
+                const contributorDiv = document.createElement('div');
+                contributorDiv.className = 'contributor-item';
+
+                // 使用洛谷头像 API: https://cdn.luogu.com.cn/upload/usericon/{uid}.png
+                const avatarImg = document.createElement('img');
+                avatarImg.src = `https://cdn.luogu.com.cn/upload/usericon/${contributor.id}.png`;
+                avatarImg.alt = `${contributor.name}'s Avatar`;
+                avatarImg.className = 'contributor-avatar';
+
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'contributor-info';
+                infoDiv.innerHTML = `
+                    <div class="contributor-name">${contributor.name}</div>
+                    <div class="contributor-contribution">${contributor.contribution}</div>
+                `;
+
+                contributorDiv.appendChild(avatarImg);
+                contributorDiv.appendChild(infoDiv);
+                thanksList.appendChild(contributorDiv);
+            });
+        }
+    </script>
+</body>
+
+</html>
