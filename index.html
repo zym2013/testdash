@@ -75,7 +75,8 @@
             cursor: pointer;
         }
 
-        .sidebar-item i {
+        .sidebar-item i,
+        .sidebar-item svg {
             margin-right: 15px;
             font-size: 18px;
             min-width: 20px;
@@ -575,8 +576,10 @@
     </div>
 
     <script>
+        let useruid;
         document.addEventListener('giveuid', function (e) {
-            alert('收到插件消息:', e.detail);
+            alert('收到插件消息:' + e.detail.content);
+            console.log('收到插件消息:' + e.detail.content);
         });
 
         // 默认设置
