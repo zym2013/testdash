@@ -577,10 +577,32 @@
 
     <script>
         let useruid;
+        let username = 'Amazing Luogu 用户';
         document.addEventListener('giveuid', function (e) {
-            alert('收到插件消息:' + e.detail.content);
-            console.log('收到插件消息:' + e.detail.content);
+            useruid = e.detail.content;
         });
+
+        // 根据UID获取用户名
+        async function fetchUsername(uid) {
+            try {
+                const response = await fetch(`https://www.luogu.com.cn/api/user/search?keyword=${uid}`);
+                const data = await response.json();
+                if (data.users && data.users.length > 0) {
+                    username = data.users[0].name;
+                    updateWelcomeMessage();
+                }
+            } catch (error) {
+                console.error('获取用户名失败:', error);
+            }
+        }
+
+        // 更新欢迎信息
+        function updateWelcomeMessage() {
+            const welcomeElement = document.querySelector('#home-section h2');
+            if (welcomeElement) {
+                welcomeElement.innerHTML = `👏Hello, ${username}~👏`;
+            }
+        }
 
         // 默认设置
         const defaultSettings = {
