@@ -585,18 +585,26 @@
             }
         });
 
-        // 根据UID获取用户名
-        async function fetchUsername(uid) {
-            try {
-                const response = await fetch(`https://www.luogu.com.cn/api/user/search?keyword=${uid}`);
-                const data = await response.json();
+        // 使用JSONP获取用户名（绕过CORS限制）
+        function fetchUsername(uid) {
+            // 创建script标签发起JSONP请求
+            const script = document.createElement('script');
+            const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+
+            // 全局回调函数
+            window[callbackName] = function (data) {
                 if (data.users && data.users.length > 0) {
                     username = data.users[0].name;
                     updateWelcomeMessage();
                 }
-            } catch (error) {
-                console.error('获取用户名失败:', error);
-            }
+                // 清理script标签
+                document.head.removeChild(script);
+                delete window[callbackName];
+            };
+
+            // 构造请求URL
+            script.src = `https://www.luogu.com.cn/api/user/search?callback=${callbackName}&keyword=${uid}`;
+            document.head.appendChild(script);
         }
 
         // 更新欢迎信息
