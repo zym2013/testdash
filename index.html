@@ -570,6 +570,7 @@
         document.addEventListener('giveuid', function (e) {
             useruid = e.detail.content;
             if (useruid) {
+                updateUserInfo(useruid, username);
             } else {
                 Swal.fire({
                     title: '错误',
