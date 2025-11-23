@@ -320,20 +320,12 @@
             <div id="thanks-list"></div>
         </div>
 
-        <!-- 设置页内容 -->
         <div id="settings-section" class="page-section">
-            <!-- 常规设置 -->
             <div class="settings-section" id="general-section">
                 <h3><i class="fas fa-cog"></i> 常规设置</h3>
-                <!-- <div class="setting-item">
-                    <label><input type="checkbox" id="amlPanelOpen"> 开启插件面板</label>
-                </div> -->
                 <div class="setting-item">
                     <label><input type="checkbox" id="amlProblemColors"> 题目难度染色</label>
                 </div>
-                <!-- <div class="setting-item">
-                    <label><input type="checkbox" id="amlCoverRemoval"> 移除题面背景</label>
-                </div> -->
                 <div class="setting-item">
                     <label><input type="checkbox" id="amlAutoCheckIn"> 自动签到</label>
                 </div>
@@ -355,15 +347,11 @@
                 <div class="setting-item">
                     <label><input type="checkbox" id="amlSaveStationJumper"> 自动跳转保存站</label>
                 </div>
-                <!-- <div class="setting-item">
-                    <label><input type="checkbox" id="amlCaptchaAutofill"> 验证码自动填充</label>
-                </div> -->
                 <div class="setting-item">
                     <label><input type="checkbox" id="amlAutoExpandBenben"> 首页犇犇自动展开与屏蔽</label>
                 </div>
             </div>
 
-            <!-- 聊天设置 -->
             <div class="settings-section" id="chat-section" style="display: none;">
                 <h3><i class="fas fa-comments"></i> 聊天设置</h3>
                 <div class="setting-item">
@@ -375,19 +363,7 @@
                 <div class="setting-item">
                     <label><input type="checkbox" id="amlEmojiRenderingEnabled"> 启用表情包渲染</label>
                 </div>
-                <!-- <div class="setting-item">
-                    <label><input type="checkbox" id="amlAutoReplyEnabled"> 启用自动回复</label>
-                </div>
-                <div class="setting-item" id="aml-autoReply-section" style="display: none;">
-                    <label>自动回复消息 (普通模式)</label>
-                    <input type="text" id="amlAutoReplyNormalMessage" placeholder="输入自动回复内容...">
-                </div>
-                <div class="setting-item" id="aml-autoReply-section-focus" style="display: none;">
-                    <label>自动回复消息 (专注模式)</label>
-                    <input type="text" id="amlAutoReplyFocusModeMessage" placeholder="输入专注模式自动回复内容...">
-                </div> -->
                 <div class="setting-item" id="aml-autoReply-disabled-notice">
-                    <!-- <em>启用自动回复后，此处设置生效。</em> -->
                     <em>发现自动回复功能可能会导致私信被封，该功能已在 <strong>0.6.7</strong> 版本停用。</em>
                 </div>
             </div>
@@ -557,16 +533,9 @@
                 <div class="setting-item" id="aml-focusmode-disabled-notice">
                     <em>启用专注模式后，此处设置生效。</em>
                 </div>
-                <!-- <div class="setting-item">
-                    <label><input type="checkbox" id="amlArticleCommentManager"> 文章评论管理</label>
-                </div> -->
-                <!-- <div class="setting-item">
-                    <label>OCR API 端点</label>
-                    <input type="text" id="amlCaptchaOCREndpoint" placeholder="输入 OCR API 地址...">
-                </div> -->
                 <div class="setting-item">
                     <label>犇犇屏蔽用户 ID (逗号分隔)</label>
-                    <textarea id="amlBenbenBlockedUids" rows="2" placeholder="例如: 1,2,3"></textarea>
+                    <textarea id="amlBenbenBlockedUids" rows="2" placeholder="例如: 1,8457"></textarea>
                 </div>
             </div>
 
@@ -575,26 +544,97 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdmirror.com/npm/sweetalert2@11.26.2"></script>
+
     <script>
         let useruid;
         let username = 'Amazing Luogu 用户';
         document.addEventListener('giveuid', function (e) {
             useruid = e.detail.content;
+            if (useruid) {
+                addAvatarToHeader();
+            } else {
+                Swal.fire({
+                    title: '错误',
+                    text: '无法获取您的洛谷 UID，请检查是否启用了脚本。',
+                    icon: 'error',
+                    confirmButtonText: '确定'
+                });
+            }
         });
         document.addEventListener('giveusername', function (e) {
             username = e.detail.content;
             if (username) updateWelcomeMessage();
         });
 
-        // 更新欢迎信息
+        function addAvatarToHeader() {
+            if (!useruid) {
+                return;
+            }
+            const avatarUrl = `https://cdn.luogu.com.cn/upload/usericon/${useruid}.png`;
+            const waitForHeader = setInterval(() => {
+                const headerContainer = document.querySelector('header') || document.querySelector('.nav-container') || document.querySelector('.lfe-material');
+                if (headerContainer) {
+                    clearInterval(waitForHeader);
+                    let userLinkElement = document.querySelector('a[href^="/user/"]');
+                    let insertTarget = null;
+                    let insertMethod = 'afterend';
+                    if (userLinkElement) {
+                        insertTarget = userLinkElement.parentElement;
+                    } else {
+                        insertTarget = headerContainer;
+                        insertMethod = 'beforeend';
+                    }
+                    if (insertTarget) {
+                        if (document.getElementById('aml-user-avatar')) {
+                            return;
+                        }
+                        const avatarContainer = document.createElement('div');
+                        avatarContainer.id = 'aml-user-avatar-container';
+                        avatarContainer.style.cssText = `
+                            display: flex;
+                            align-items: center;
+                            margin-left: 10px;
+                            margin-right: 10px;
+                        `;
+                        const avatarLink = document.createElement('a');
+                        avatarLink.href = `/user/${useruid}`;
+                        avatarLink.target = '_blank';
+                        avatarLink.style.display = 'block';
+                        const avatarImg = document.createElement('img');
+                        avatarImg.id = 'aml-user-avatar';
+                        avatarImg.src = avatarUrl;
+                        avatarImg.alt = username || `User ${useruid}`;
+                        avatarImg.title = username || `User ${useruid}`;
+                        avatarImg.style.cssText = `
+                            width: 32px;
+                            height: 32px;
+                            border-radius: 50%;
+                            border: 2px solid #fff;
+                            object-fit: cover;
+                            cursor: pointer;
+                            transition: opacity 0.2s;
+                        `;
+                        avatarLink.appendChild(avatarImg);
+                        avatarContainer.appendChild(avatarLink);
+                        insertTarget[insertMethod](avatarContainer);
+                    }
+                }
+            }, 500);
+        }
+        function updateAvatarTitle() {
+            const avatarImg = document.getElementById('aml-user-avatar');
+            if (avatarImg) {
+                avatarImg.title = username;
+                avatarImg.alt = username;
+            }
+        }
         function updateWelcomeMessage() {
             const welcomeElement = document.querySelector('#home-section h2');
             if (welcomeElement) {
                 welcomeElement.innerHTML = `👏Hello, ${username}~👏`;
             }
         }
-
-        // 默认设置
         const defaultSettings = {
             amlPanelOpen: true,
             amlChatMarkdown: true,
