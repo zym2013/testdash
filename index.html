@@ -580,9 +580,6 @@
         let username = 'Amazing Luogu 用户';
         document.addEventListener('giveuid', function (e) {
             useruid = e.detail.content;
-            if (useruid) {
-                fetchUsername(useruid);
-            }
         });
         document.addEventListener('giveusername', function (e) {
             username = e.detail.content;
