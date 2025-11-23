@@ -316,7 +316,7 @@
         <div class="settings-nav-item active" data-section="general">常规设置</div>
         <div class="settings-nav-item" data-section="chat">聊天设置</div>
         <div class="settings-nav-item" data-section="appearance">外观设置</div>
-        <div class="settings-nav-item" data-section="advanced">高级设置</div>
+        <div class="settings-nav-item" data-section="advanced">其他设置</div>
     </div>
 
     <div class="content-area">
@@ -412,7 +412,7 @@
             </div>
 
             <div class="settings-section" id="advanced-section" style="display: none;">
-                <h3><i class="fas fa-sliders-h"></i> 高级设置</h3>
+                <h3><i class="fas fa-sliders-h"></i> 其他设置</h3>
                 <div class="setting-item">
                     <label><input type="checkbox" id="amlDefaultCodeEnabled"> 启用缺省源</label>
                 </div>
@@ -772,6 +772,7 @@
                     }
                 }
             });
+            console.log(settings);
             try {
                 localStorage.setItem('aml_settings', JSON.stringify(settings));
                 updateConditionalSettings();
