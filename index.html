@@ -14,7 +14,7 @@
             src: url('https://cdn.jsdmirror.com/gh/googlefonts/caveat/fonts/ttf/Caveat-Regular.ttf') format('truetype');
             font-weight: 400;
             font-style: normal;
-            font-display: swap
+            font-display: swap;
         }
 
         body {
@@ -56,7 +56,6 @@
             box-shadow: 2px 0 10px rgba(135, 206, 250, 0.1);
             transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
-            /* backdrop-filter: blur(10px); */
             z-index: 1000;
             margin-top: 45px;
             margin-left: -20px;
@@ -106,29 +105,18 @@
             margin-left: 60px !important;
             padding: 20px;
             margin-bottom: 20px;
-            /* 底部留白 */
         }
 
-        /* 新增：设置页内部导航栏 */
         .settings-nav {
             position: fixed;
             top: 65px;
-            /* 紧跟在 header 下方 */
             left: 70px;
-            /* 跟随 sidebar 宽度 */
             right: 0;
-            /* 延伸到右侧 */
             background: linear-gradient(90deg, #f8faff 0%, #e6f3ff 100%);
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             display: flex;
             z-index: 950;
-            /* 低于 header 和 sidebar */
             transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            /* 与 sidebar 动画同步 */
-        }
-
-        .settings-nav.expanded {
-            /* left: 250px; 侧边栏展开时，导航栏也向右移动 */
         }
 
         .settings-nav-item {
@@ -561,24 +549,14 @@
             <div class="status-message" id="statusMessage"></div>
         </div>
     </div>
-
     <script src="https://cdn.jsdmirror.com/npm/sweetalert2@11.26.2"></script>
-
     <script>
         let useruid;
         let username = 'Amazing Luogu 用户';
         document.addEventListener('giveuid', function (e) {
             useruid = e.detail.content;
-            console.log(useruid);
             if (useruid) {
                 updateUserInfo(useruid, username);
-            } else {
-                Swal.fire({
-                    title: '错误',
-                    text: '无法获取您的洛谷 UID，请检查是否启用了脚本。',
-                    icon: 'error',
-                    confirmButtonText: '确定'
-                });
             }
         });
         document.addEventListener('giveusername', function (e) {
@@ -679,15 +657,11 @@
             amlChatNotificationEnabled: true,
             amlEmojiRenderingEnabled: true,
         };
-
-        // 页面加载时恢复设置
         document.addEventListener('DOMContentLoaded', function () {
             loadSettings();
             setupSidebar();
-            setupSettingsNav(); // 初始化设置页导航栏
-            renderThanksPage(); // 渲染鸣谢页
-
-            // 为需要动态显示/隐藏的复选框添加监听
+            setupSettingsNav();
+            renderThanksPage();
             ['amlAutoReplyEnabled', 'amlCustomStyleEnabled', 'amlCustomFontEnabled', 'amlDefaultCodeEnabled', 'amlFocusModeEnabled'].forEach(key => {
                 const element = document.getElementById(key);
                 if (element) {
@@ -695,110 +669,85 @@
                 }
             });
         });
-
         function setupSidebar() {
             const sidebar = document.getElementById('sidebar');
-            const settingsNav = document.getElementById('settings-nav'); // 获取新的导航栏
+            const settingsNav = document.getElementById('settings-nav');
             if (sidebar) {
-                // 鼠标悬停/离开展开/收起
                 sidebar.addEventListener('mouseenter', function () {
                     sidebar.classList.add('expanded');
                     document.body.classList.add('sidebar-expanded');
-                    settingsNav.classList.add('expanded'); // 同时移动导航栏
+                    settingsNav.classList.add('expanded');
                 });
                 sidebar.addEventListener('mouseleave', function () {
                     sidebar.classList.remove('expanded');
                     document.body.classList.remove('sidebar-expanded');
-                    settingsNav.classList.remove('expanded'); // 同时移动导航栏
+                    settingsNav.classList.remove('expanded');
                 });
-
-                // 触摸事件展开/收起 (适用于移动端)
                 let touchStartTime;
                 sidebar.addEventListener('touchstart', function (event) {
                     touchStartTime = event.timeStamp;
                 });
                 sidebar.addEventListener('touchend', function (event) {
-                    if (event.timeStamp - touchStartTime < 200) { // 简单判断为点击
+                    if (event.timeStamp - touchStartTime < 200) {
                         if (sidebar.classList.contains('expanded')) {
                             sidebar.classList.remove('expanded');
                             document.body.classList.remove('sidebar-expanded');
-                            settingsNav.classList.remove('expanded'); // 同时移动导航栏
+                            settingsNav.classList.remove('expanded');
                         } else {
                             sidebar.classList.add('expanded');
                             document.body.classList.add('sidebar-expanded');
-                            settingsNav.classList.add('expanded'); // 同时移动导航栏
+                            settingsNav.classList.add('expanded');
                         }
                     }
                 });
-
-                // 侧边栏项目点击切换页面
                 sidebar.querySelectorAll('.sidebar-item').forEach(item => {
                     item.addEventListener('click', function () {
                         const targetPage = this.getAttribute('data-page');
                         showPage(targetPage);
-                        // 更新侧边栏激活状态
                         sidebar.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
                         this.classList.add('active');
                     });
                 });
             }
         }
-
-        // 新增：设置页内部导航栏功能
         function setupSettingsNav() {
             const navItems = document.querySelectorAll('.settings-nav-item');
             navItems.forEach(item => {
                 item.addEventListener('click', function () {
                     const targetSection = this.getAttribute('data-section');
                     showSection(targetSection);
-                    // 更新导航栏激活状态
                     navItems.forEach(i => i.classList.remove('active'));
                     this.classList.add('active');
                 });
             });
         }
-
         function showPage(pageName) {
-            // 隐藏所有页面
             document.querySelectorAll('.page-section').forEach(section => {
                 section.classList.remove('active');
             });
-            // 隐藏设置页导航栏
             document.getElementById('settings-nav').style.display = 'none';
-            // 显示目标页面
             document.getElementById(`${pageName}-section`).classList.add('active');
-
-            // 如果切换到设置页，确保内部设置部分正确显示，并显示内部导航栏
             const contentArea = document.querySelector('div.content-area');
             if (pageName === 'settings') {
-                contentArea.style.setProperty("margin-top", "120px", "important"); // 设置页需要顶部留白
-                document.getElementById('settings-nav').style.display = 'flex'; // 显示内部导航栏
-                // 重新应用条件显示逻辑，确保当前设置项正确显示
+                contentArea.style.setProperty("margin-top", "120px", "important");
+                document.getElementById('settings-nav').style.display = 'flex';
                 updateConditionalSettings();
             } else {
-                contentArea.style.setProperty("margin-top", "50px", "important"); // 首页等其他页面的默认留白
+                contentArea.style.setProperty("margin-top", "50px", "important");
             }
         }
-
-        // 修改：切换显示的设置部分 (在设置页内部)
         function showSection(sectionName) {
             if (!document.getElementById('settings-section').classList.contains('active')) {
-                // 如果设置页未激活，先激活设置页
                 showPage('settings');
-                // 然后找到对应的侧边栏项并激活（虽然这里没有内部侧边栏项，但逻辑保持一致）
             }
-            // 隐藏所有设置部分
             document.querySelectorAll('#settings-section .settings-section').forEach(section => {
                 section.style.display = 'none';
             });
-            // 显示选中的部分
             document.getElementById(`${sectionName}-section`).style.display = 'block';
         }
-
         function loadSettings() {
             const savedSettings = JSON.parse(localStorage.getItem('aml_settings') || '{}');
             const settings = { ...defaultSettings, ...savedSettings };
-
             Object.keys(settings).forEach(key => {
                 const element = document.getElementById(key);
                 if (element) {
@@ -809,11 +758,8 @@
                     }
                 }
             });
-
-            // 根据初始状态显示/隐藏相关设置项
             updateConditionalSettings();
         }
-
         function saveSettings() {
             const settings = {};
             Object.keys(defaultSettings).forEach(key => {
@@ -826,55 +772,46 @@
                     }
                 }
             });
-
             try {
                 localStorage.setItem('aml_settings', JSON.stringify(settings));
-                // 更新条件显示
                 updateConditionalSettings();
                 showStatus('设置已成功保存到本地！', 'success');
+                const settingsEvent = new CustomEvent('pageMessage', {
+                    detail: {
+                        type: 'settingsUpdated',
+                        data: settings
+                    }
+                });
+                document.dispatchEvent(settingsEvent);
             } catch (e) {
                 console.error('保存设置失败:', e);
                 showStatus('保存失败: ' + e.message, 'error');
             }
         }
-
         function showStatus(message, type) {
             const statusDiv = document.getElementById('statusMessage');
             if (statusDiv) {
                 statusDiv.textContent = message;
-                statusDiv.className = 'status-message ' + type; // 设置成功或错误的类
-                // 3秒后自动隐藏
+                statusDiv.className = 'status-message ' + type;
                 setTimeout(() => {
                     statusDiv.style.display = 'none';
                 }, 3000);
             }
         }
-
         function updateConditionalSettings() {
             const settings = JSON.parse(localStorage.getItem('aml_settings') || JSON.stringify(defaultSettings));
-            // 聊天设置
-            // document.getElementById('aml-autoReply-section').style.display = settings.amlAutoReplyEnabled ? 'block' : 'none';
-            // document.getElementById('aml-autoReply-section-focus').style.display = settings.amlAutoReplyEnabled ? 'block' : 'none';
-            // document.getElementById('aml-autoReply-disabled-notice').style.display = settings.amlAutoReplyEnabled ? 'none' : 'block';
-
-            // 外观设置
             document.getElementById('aml-customcss-section').style.display = settings.amlCustomStyleEnabled ? 'block' : 'none';
             document.getElementById('aml-customcss-disabled-notice').style.display = settings.amlCustomStyleEnabled ? 'none' : 'block';
             document.getElementById('aml-customfont-section').style.display = settings.amlCustomFontEnabled ? 'block' : 'none';
             document.getElementById('aml-customfont-disabled-notice').style.display = settings.amlCustomFontEnabled ? 'none' : 'block';
-
-            // 高级设置
             document.getElementById('aml-defaultcode-section').style.display = settings.amlDefaultCodeEnabled ? 'block' : 'none';
             document.getElementById('aml-defaultcode-disabled-notice').style.display = settings.amlDefaultCodeEnabled ? 'none' : 'block';
             document.getElementById('aml-focusmode-section').style.display = settings.amlFocusModeEnabled ? 'block' : 'none';
             document.getElementById('aml-focusmode-disabled-notice').style.display = settings.amlFocusModeEnabled ? 'none' : 'block';
         }
-        // 新增：渲染鸣谢页
         function renderThanksPage() {
             const thanksList = document.getElementById('thanks-list');
             if (!thanksList) return;
-
-            // 示例数据，实际项目中应从配置文件或 API 获取
             const contributors = [
                 { id: 749539, name: '__yun__', contribution: '报告许多 BUG 与提出许多建议' },
                 { id: 542128, name: 'wing_heart', contribution: '报告 BUG 与提出建议' },
@@ -884,34 +821,21 @@
                 { id: 466596, name: 'MorningStarCzy', contribution: '报告 BUG 与提出建议' },
                 { id: 1293314, name: 'Lqs888', contribution: '报告 BUG 与提出建议' },
                 { id: 1025097, name: 'koukou', contribution: '报告 BUG 与提出建议' },
-                // { id: 61374, name: 'Lqs888', contribution: '报告 BUG 与提出建议' },
-                // { id: 613794, name: 'Lqs888', contribution: '报告 BUG 与提出建议' },
-                // { id: 613794, name: 'Lqs888', contribution: '报告 BUG 与提出建议' },
-                // { id: 613794, name: 'Lqs888', contribution: '报告 BUG 与提出建议' },
-                // { id: 613794, name: 'Lqs888', contribution: '报告 BUG 与提出建议' },
-                // { id: 613794, 9name: 'Lqs888', contribution: '报告 BUG 与提出建议' },
-                // ... 更多贡献者
             ];
-
-            thanksList.innerHTML = ''; // 清空现有内容
-
+            thanksList.innerHTML = '';
             contributors.forEach(contributor => {
                 const contributorDiv = document.createElement('div');
                 contributorDiv.className = 'contributor-item';
-
-                // 使用洛谷头像 API: https://cdn.luogu.com.cn/upload/usericon/{uid}.png
                 const avatarImg = document.createElement('img');
                 avatarImg.src = `https://cdn.luogu.com.cn/upload/usericon/${contributor.id}.png`;
                 avatarImg.alt = `${contributor.name}'s Avatar`;
                 avatarImg.className = 'contributor-avatar';
-
                 const infoDiv = document.createElement('div');
                 infoDiv.className = 'contributor-info';
                 infoDiv.innerHTML = `
                     <div class="contributor-name">${contributor.name}</div>
                     <div class="contributor-contribution">${contributor.contribution}</div>
                 `;
-
                 contributorDiv.appendChild(avatarImg);
                 contributorDiv.appendChild(infoDiv);
                 thanksList.appendChild(contributorDiv);
