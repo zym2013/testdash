@@ -289,6 +289,70 @@
             font-weight: 500;
             color: #555;
         }
+
+                .announcement-section,
+        .features-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .announcement-section h3,
+        .features-section h3 {
+            margin-top: 0;
+            color: #34495e;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .announcement-content p {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+
+        .announcement-content p strong {
+            color: #2980b9;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .feature-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #e1e8ed;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #f8fafc;
+        }
+
+        .feature-card:hover {
+            background: #e3f2fd;
+            border-color: #bbdefb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-card i {
+            font-size: 24px;
+            color: #3498db;
+            margin-bottom: 8px;
+        }
+
+        .feature-card span {
+            font-size: 14px;
+            color: #2c3e50;
+            text-align: center;
+        }
     </style>
 </head>
 
@@ -323,6 +387,42 @@
         <div id="home-section" class="page-section active">
             <h2>👏Hello, Amazing Luogu 用户~👏</h2>
             <p>这里是 Amazing Luogu 的设置板。</p>
+
+            <div class="announcement-section">
+                <h3><i class="fas fa-bullhorn"></i> 公告</h3>
+                <div class="announcement-content">
+                    <p><strong>代码征集</strong></p>
+                    <p>征集篡改猴形式的洛谷暗色模式代码，私信 zhangyimin12345。</p>
+                    <p><strong>需知</strong></p>
+                    <p>请先升级至 <strong>0.6.7</strong> 版本再使用此面板。</p>
+                </div>
+            </div>
+
+            <div class="features-section">
+                <h3><i class="fas fa-star"></i> 快捷功能</h3>
+                <div class="features-grid">
+                    <div class="feature-card" onclick="exportSettings()">
+                        <i class="fas fa-file-export"></i>
+                        <span>导出设置</span>
+                    </div>
+                    <div class="feature-card" onclick="importSettings()">
+                        <i class="fas fa-file-import"></i>
+                        <span>导入设置</span>
+                    </div>
+                    <div class="feature-card" onclick="gotolink('https://benben.amazingluogu.dpdns.org/')">
+                        <i class="fas fa-comment"></i>
+                        <span>全网犇犇</span>
+                    </div>
+                    <div class="feature-card" onclick="gotolink('https://home.amazingluogu.dpdns.org/')">
+                        <i class="fas fa-home"></i>
+                        <span>插件首页</span>
+                    </div>
+                    <div class="feature-card" onclick="gotolink('https://zym2013.dpdns.org/amldocs')">
+                        <i class="fas fa-book"></i>
+                        <span>插件文档</span>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div id="thanks-section" class="page-section">
@@ -589,6 +689,42 @@
                 welcomeElement.innerHTML = `👏Hello, ${username}~👏`;
             }
         }
+        function gotolink(tolink) {
+            window.location.href = tolink;
+        }
+        function exportSettings() {
+            const settings = JSON.parse(localStorage.getItem('aml_settings') || JSON.stringify(defaultSettings));
+            const dataStr = JSON.stringify(settings, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'aml_settings_backup.json';
+            link.click();
+            URL.revokeObjectURL(url);
+            showStatus('设置已导出', 'success');
+        }
+        async function importSettings() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = e => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const settings = JSON.parse(e.target.result);
+                        localStorage.setItem('aml_settings', JSON.stringify(settings));
+                        loadSettings();
+                        showStatus('设置已导入', 'success');
+                    } catch (error) {
+                        showStatus('导入失败: 文件格式错误', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
         const defaultSettings = {
             amlPanelOpen: true,
             amlChatMarkdown: true,
@@ -776,7 +912,7 @@
             try {
                 localStorage.setItem('aml_settings', JSON.stringify(settings));
                 updateConditionalSettings();
-                showStatus('设置已成功保存到本地！', 'success');
+                showStatus('设置已成功保存！', 'success');
                 const settingsEvent = new CustomEvent('pageMessage', {
                     detail: {
                         type: 'settingsUpdated',
