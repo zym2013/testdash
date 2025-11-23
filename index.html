@@ -569,6 +569,7 @@
         let username = 'Amazing Luogu 用户';
         document.addEventListener('giveuid', function (e) {
             useruid = e.detail.content;
+            console.log(useruid);
             if (useruid) {
                 updateUserInfo(useruid, username);
             } else {
