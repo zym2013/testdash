@@ -290,7 +290,7 @@
             color: #555;
         }
 
-                .announcement-section,
+        .announcement-section,
         .features-section {
             background: white;
             border-radius: 8px;
@@ -396,6 +396,8 @@
                     <p>征集篡改猴形式的洛谷暗色模式代码，私信 zhangyimin12345。</p>
                     <p><strong>需知</strong></p>
                     <p>请先升级至 <strong>0.6.7</strong> 版本再使用此面板。</p>
+                    <p><strong>Bug 修复通知</strong></p>
+                    <p>备忘录内容设置已添加，而且现在恢复了插件内设置。</p>
                 </div>
             </div>
 
@@ -412,7 +414,7 @@
                     </div>
                     <div class="feature-card" onclick="gotolink('https://benben.amazingluogu.dpdns.org/')">
                         <i class="fas fa-comment"></i>
-                        <span>全网犇犇</span>
+                        <span>全网犇犇（可能会下线）</span>
                     </div>
                     <div class="feature-card" onclick="gotolink('https://home.amazingluogu.dpdns.org/')">
                         <i class="fas fa-home"></i>
@@ -443,6 +445,14 @@
                 </div>
                 <div class="setting-item">
                     <label><input type="checkbox" id="amlMemoEnabled"> 备忘录功能</label>
+                    <div id="aml-memo-content-section" style="display: none; margin-top: 10px; padding-left: 20px;">
+                        <label for="amlMemoContent">备忘录内容（支持 HTML, Markdown, KaTeX）：</label>
+                        <textarea id="amlMemoContent" rows="4" placeholder="在这里输入您的备忘录内容..."></textarea>
+                    </div>
+                    <div id="aml-memo-disabled-notice"
+                        style="display: block; margin-top: 10px; padding-left: 20px; font-style: italic; color: #666;">
+                        <em>备忘录功能已关闭。</em>
+                    </div>
                 </div>
                 <div class="setting-item">
                     <label><input type="checkbox" id="amlButtonUnlocker"> 比赛报名按钮解锁器</label>
@@ -696,7 +706,7 @@
         function exportSettings() {
             const settings = JSON.parse(localStorage.getItem('aml_settings') || JSON.stringify(defaultSettings));
             const dataStr = JSON.stringify(settings, null, 2);
-            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(dataBlob);
             const link = document.createElement('a');
             link.href = url;
@@ -712,7 +722,7 @@
             input.onchange = e => {
                 const file = e.target.files[0];
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     try {
                         const settings = JSON.parse(e.target.result);
                         localStorage.setItem('aml_settings', JSON.stringify(settings));
@@ -731,22 +741,23 @@
             amlChatMarkdown: true,
             amlProblemColors: true,
             amlCoverRemoval: false,
-            amlAutoCheckIn: false,
-            amlMemoEnabled: false,
-            amlButtonUnlocker: false,
-            amlProblemJumpStyling: false,
+            amlAutoCheckIn: true,
+            amlMemoEnabled: true,
+            amlMemoContent: '<h3>备忘录</h3>\n<ul>\n<li>关注 zym2013 谢谢啦</li>\n<li>备忘录支持 HTML、Markdown、KaTeX 啾！</li>\n</ul>',
+            amlButtonUnlocker: true,
+            amlProblemJumpStyling: true,
             amlCodeFolding: true,
             amlProblemJumper: true,
             amlSaveStationJumper: true,
             amlCaptchaAutofill: false,
-            amlAutoExpandBenben: false,
+            amlAutoExpandBenben: true,
             amlAutoReplyEnabled: false,
             amlAutoReplyNormalMessage: '已经提示该用户，请耐心等待 TA 的回复！',
             amlAutoReplyFocusModeMessage: '该用户开启了专注模式认真学术，可能暂时无法回复您的私信！',
-            amlCustomStyleEnabled: true,
+            amlCustomStyleEnabled: false,
             amlCustomCSS: '',
             amlCustomCSSPosition: 'head',
-            amlCustomFontEnabled: true,
+            amlCustomFontEnabled: false,
             amlCustomFontURL: '',
             amlUserFinderEnabled: false,
             amlDefaultCodeEnabled: true,
@@ -895,6 +906,7 @@
                     }
                 }
             });
+            updateMemoSettingsUI();
             updateConditionalSettings();
         }
         function saveSettings() {
@@ -913,6 +925,7 @@
             try {
                 localStorage.setItem('aml_settings', JSON.stringify(settings));
                 updateConditionalSettings();
+                updateMemoSettingsUI();
                 showStatus('设置已成功保存！', 'success');
                 const settingsEvent = new CustomEvent('pageMessage', {
                     detail: {
@@ -947,6 +960,20 @@
             document.getElementById('aml-focusmode-section').style.display = settings.amlFocusModeEnabled ? 'block' : 'none';
             document.getElementById('aml-focusmode-disabled-notice').style.display = settings.amlFocusModeEnabled ? 'none' : 'block';
         }
+        function updateMemoSettingsUI() {
+            const memoEnabled = document.getElementById('amlMemoEnabled').checked;
+            const contentSection = document.getElementById('aml-memo-content-section');
+            const disabledNotice = document.getElementById('aml-memo-disabled-notice');
+
+            if (memoEnabled) {
+                contentSection.style.display = 'block';
+                disabledNotice.style.display = 'none';
+            } else {
+                contentSection.style.display = 'none';
+                disabledNotice.style.display = 'block';
+            }
+        }
+        document.getElementById('amlMemoEnabled').addEventListener('change', updateMemoSettingsUI);
         function renderThanksPage() {
             const thanksList = document.getElementById('thanks-list');
             if (!thanksList) return;
@@ -956,9 +983,11 @@
                 { id: 613794, name: 'jianhe', contribution: '报告 BUG 与提出建议' },
                 { id: 365751, name: 'Mr_罗', contribution: '提供了删除广告并将运势居中的代码~' },
                 { id: 1047592, name: 'mondayrain', contribution: '报告 BUG 与提出建议' },
-                { id: 466596, name: 'MorningStarCzy', contribution: '报告 BUG 与提出建议' },
-                { id: 1293314, name: 'Lqs888', contribution: '报告 BUG 与提出建议' },
-                { id: 1025097, name: 'koukou', contribution: '报告 BUG 与提出建议' },
+                { id: 466596, name: 'MorningStarCzy', contribution: '报告 BUG 或提出建议' },
+                { id: 1293314, name: 'Lqs888', contribution: '报告 BUG 或提出建议' },
+                { id: 1015977, name: 'hayZZZ', contribution: '报告 BUG 或提出建议' },
+                { id: 2002447, name: 'Q_A_2025', contribution: '报告 BUG 或提出建议' },
+                { id: 1025097, name: 'koukou', contribution: '报告 BUG 或提出建议' },
             ];
             thanksList.innerHTML = '';
             contributors.forEach(contributor => {
