@@ -395,7 +395,7 @@
                     <p><strong>代码征集</strong></p>
                     <p>征集篡改猴形式的洛谷暗色模式代码，私信 zhangyimin12345。</p>
                     <p><strong>需知</strong></p>
-                    <p>请先升级至 <strong>0.6.7</strong> 版本再使用此面板。</p>
+                    <p>请先升级至 <strong>0.7.6</strong> 版本再使用此面板。</p>
                     <p><strong>Bug 修复通知</strong></p>
                     <p>备忘录内容设置已添加，而且现在恢复了插件内设置。</p>
                 </div>
@@ -439,6 +439,9 @@
                 <h3><i class="fas fa-cog"></i> 常规设置</h3>
                 <div class="setting-item">
                     <label><input type="checkbox" id="amlProblemColors"> 题目难度染色</label>
+                </div>
+                <div class="setting-item">
+                    <label><input type="checkbox" id="amlProblemRandom"> 根据条件随机跳转题目</label>
                 </div>
                 <div class="setting-item">
                     <label><input type="checkbox" id="amlAutoCheckIn"> 自动签到</label>
@@ -674,6 +677,12 @@
             username = e.detail.content;
             if (username) updateWelcomeMessage();
         });
+        document.addEventListener('givesettings', function (e) {
+            GM_settings = e.detail.content;
+            if (GM_settings) {
+                loadSettings(GM_settings);
+            }
+        });
         setInterval(() => {
             if (useruid && username) {
                 updateUserInfo(useruid, username);
@@ -704,7 +713,13 @@
             window.location.href = tolink;
         }
         function exportSettings() {
-            const settings = JSON.parse(localStorage.getItem('aml_settings') || JSON.stringify(defaultSettings));
+            const settings_ = JSON.parse(localStorage.getItem('aml_settings')||'{}');
+            const settings = defaultSettings;
+            for(const key in settings) {
+                if(!settings_[key]){
+                    settings[key] = settings_[key];
+                }
+            }
             const dataStr = JSON.stringify(settings, null, 2);
             const dataBlob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(dataBlob);
@@ -726,7 +741,11 @@
                     try {
                         const settings = JSON.parse(e.target.result);
                         localStorage.setItem('aml_settings', JSON.stringify(settings));
-                        loadSettings();
+                        const Event = new CustomEvent('pageMessage', {
+                            detail: { type: 'data', content: settings }
+                        });
+                        document.dispatchEvent(Event);
+                        loadSettings(settings);
                         showStatus('设置已导入', 'success');
                     } catch (error) {
                         showStatus('导入失败: 文件格式错误', 'error');
@@ -737,76 +756,81 @@
             input.click();
         }
         const defaultSettings = {
-            amlPanelOpen: true,
-            amlChatMarkdown: true,
-            amlProblemColors: true,
-            amlCoverRemoval: false,
-            amlAutoCheckIn: true,
-            amlMemoEnabled: true,
-            amlMemoContent: '<h3>备忘录</h3>\n<ul>\n<li>关注 zym2013 谢谢啦</li>\n<li>备忘录支持 HTML、Markdown、KaTeX 啾！</li>\n</ul>',
-            amlButtonUnlocker: true,
-            amlProblemJumpStyling: true,
-            amlCodeFolding: true,
-            amlProblemJumper: true,
-            amlSaveStationJumper: true,
-            amlCaptchaAutofill: false,
-            amlAutoExpandBenben: true,
-            amlAutoReplyEnabled: false,
-            amlAutoReplyNormalMessage: '已经提示该用户，请耐心等待 TA 的回复！',
-            amlAutoReplyFocusModeMessage: '该用户开启了专注模式认真学术，可能暂时无法回复您的私信！',
-            amlCustomStyleEnabled: false,
-            amlCustomCSS: '',
-            amlCustomCSSPosition: 'head',
-            amlCustomFontEnabled: false,
-            amlCustomFontURL: '',
-            amlUserFinderEnabled: false,
-            amlDefaultCodeEnabled: true,
-            amlDefaultCodeContent: '',
-            amlFocusModeEnabled: false,
-            amlFocusModeHideChat: false,
-            amlFocusModeHideNotification: false,
-            amlFocusModeHideArticle: false,
-            amlFocusModeHidePaste: false,
-            amlFocusModeHideSolution: false,
-            amlFocusModeHideContest: false,
-            amlFocusModeHideUser: false,
-            amlFocusModeHideTicket: false,
-            amlFocusModeHideHelp: false,
-            amlFocusModeHideFooter: false,
-            amlFocusModeHideHome: false,
-            amlFocusModeHideAD: false,
-            amlFocusModeHidePunchAndAd: false,
-            amlFocusModeHidediscuss: false,
-            amlFocusModeHideFriendLinks: false,
-            amlFocusModeHideTeam: false,
-            amlFocusModeHideTag: false,
-            amlFocusModeHideThemeList: false,
-            amlFocusModeHideImageHosting: false,
-            amlFocusModeHideRank: false,
-            amlFocusModeHideJudgement: false,
-            amlFocusModeHidePage: false,
-            amlFocusModeHideLinksButtons: false,
-            amlFocusModeHideSidebarLeft: false,
-            amlFocusModeHideSidebarRight: false,
-            amlFocusModeHideBenben: false,
-            amlFocusModeHideBenbenInput: false,
-            amlFocusModeHideBenbenMore: false,
-            amlFocusModeHideProblemStats: false,
-            amlFocusModeHideProblemSolutions: false,
-            amlFocusModeHideProblemTickets: false,
-            amlFocusModeHideProblemProviders: false,
-            amlFocusModeHideProblemPersonalList: false,
-            amlFocusModeHideProblemTeamList: false,
-            amlFocusModeHideProblemDiscuss: false,
-            amlFocusModeHideProblemTags: false,
-            amlArticleCommentManager: false,
-            amlCaptchaOCREndpoint: 'http://8.140.166.24:44963/?base64=',
-            amlBenbenBlockedUids: '',
-            amlChatNotificationEnabled: true,
-            amlEmojiRenderingEnabled: true,
+            "amlProblemRandom": true,
+            "amlPanelOpen": true,
+            "amlChatMarkdown": true,
+            "amlProblemColors": true,
+            "amlCoverRemoval": false,
+            "amlCaptchaAutofill": false,
+            "amlProblemJumper": true,
+            "amlSaveStationJumper": true,
+            "amlCodeFolding": true,
+            "amlAutoCheckIn": true,
+            "amlCaptchaOCREndpoint": "http://8.140.166.24:44963/?base64=",
+            "amlColorUpdateInterval": 300,
+            "amlMemoContent": "关注 zhangyimin12345 谢谢啦！",
+            "amlMemoEnabled": true,
+            "amlButtonUnlocker": true,
+            "amlProblemJumpStyling": true,
+            "amlAutoExpandBenben": true,
+            "amlBenbenBlockedUids": [""],
+            "amlCopyMarkdownEnabled": true,
+            "amlDiscussCopyButtonEnabled": true,
+            "amlCustomCSS": "",
+            "amlCustomCSSPosition": "head",
+            "amlCustomFontURL": "",
+            "amlCustomFontEnabled": true,
+            "amlCustomStyleEnabled": true,
+            "amlDefaultCodeEnabled": true,
+            "amlDefaultCodeContent": "",
+            "amlAutoReplyEnabled": false,
+            "amlAutoReplyFocusModeMessage": "该用户开启了专注模式认真学术，可能暂时无法回复您的私信！",
+            "amlAutoReplyNormalMessage": "已经提示该用户，请耐心等待 TA 的回复！",
+            "amlUserFinderEnabled": false,
+            "amlFocusModeEnabled": false,
+            "amlFocusModeHideChat": true,
+            "amlFocusModeHideNotification": true,
+            "amlFocusModeHideArticle": true,
+            "amlFocusModeHidePaste": true,
+            "amlFocusModeHideSolution": true,
+            "amlFocusModeHideContest": false,
+            "amlFocusModeHideUser": true,
+            "amlFocusModeHideTicket": true,
+            "amlFocusModeHideHelp": true,
+            "amlFocusModeHideFooter": true,
+            "amlFocusModeHideHome": true,
+            "amlFocusModeHideAD": true,
+            "amlFocusModeHidePunchAndAd": false,
+            "amlFocusModeHidediscuss": true,
+            "amlFocusModeHideFriendLinks": true,
+            "amlFocusModeHideTeam": true,
+            "amlFocusModeHideTag": true,
+            "amlFocusModeHideThemeList": true,
+            "amlFocusModeHideImageHosting": true,
+            "amlFocusModeHideRank": true,
+            "amlFocusModeHideJudgement": true,
+            "amlFocusModeHidePage": true,
+            "amlFocusModeHideLinksButtons": true,
+            "amlFocusModeHideSidebarLeft": true,
+            "amlFocusModeHideSidebarRight": true,
+            "amlFocusModeHideBenben": true,
+            "amlFocusModeHideBenbenInput": true,
+            "amlFocusModeHideBenbenMore": true,
+            "amlFocusModeHideProblemStats": true,
+            "amlFocusModeHideProblemSolutions": true,
+            "amlFocusModeHideProblemTickets": true,
+            "amlFocusModeHideProblemProviders": true,
+            "amlFocusModeHideProblemPersonalList": true,
+            "amlFocusModeHideProblemTeamList": true,
+            "amlFocusModeHideProblemDiscuss": true,
+            "amlFocusModeHideProblemTags": true,
+            "amlFocusModeHideTrainingStats": true,
+            "amlFocusModeHideTrainingOperations": true,
+            "amlFocusModeHideRecordFilters": true,
+            "amlChatNotificationEnabled": true,
+            "amlEmojiRenderingEnabled": true
         };
         document.addEventListener('DOMContentLoaded', function () {
-            loadSettings();
             setupSidebar();
             setupSettingsNav();
             renderThanksPage();
@@ -893,8 +917,8 @@
             });
             document.getElementById(`${sectionName}-section`).style.display = 'block';
         }
-        function loadSettings() {
-            const savedSettings = JSON.parse(localStorage.getItem('aml_settings') || '{}');
+        function loadSettings(settings_ = defaultSettings) {
+            const savedSettings = settings_;
             const settings = { ...defaultSettings, ...savedSettings };
             Object.keys(settings).forEach(key => {
                 const element = document.getElementById(key);
@@ -906,6 +930,7 @@
                     }
                 }
             });
+            localStorage.setItem('aml_settings', JSON.stringify(settings));
             updateMemoSettingsUI();
             updateConditionalSettings();
         }
@@ -923,6 +948,7 @@
             });
             console.log(settings);
             try {
+                settings['amlBenbenBlockedUids']=settings['amlBenbenBlockedUids'].split(',').map(uid => uid.trim()).filter(uid => uid !== '');
                 localStorage.setItem('aml_settings', JSON.stringify(settings));
                 updateConditionalSettings();
                 updateMemoSettingsUI();
@@ -942,6 +968,7 @@
         function showStatus(message, type) {
             const statusDiv = document.getElementById('statusMessage');
             if (statusDiv) {
+                statusDiv.style.display = '';
                 statusDiv.textContent = message;
                 statusDiv.className = 'status-message ' + type;
                 setTimeout(() => {
@@ -985,7 +1012,7 @@
                 { id: 1047592, name: 'mondayrain', contribution: '报告 BUG 与提出建议' },
                 { id: 466596, name: 'MorningStarCzy', contribution: '报告 BUG 或提出建议' },
                 { id: 1293314, name: 'Lqs888', contribution: '报告 BUG 或提出建议' },
-                { id: 1015977, name: 'hayZZZ', contribution: '报告 BUG 或提出建议' },
+                { id: 1015977, name: 'heyZZZ', contribution: '报告 BUG 或提出建议' },
                 { id: 2002447, name: 'Q_A_2025', contribution: '报告 BUG 或提出建议' },
                 { id: 1025097, name: 'koukou', contribution: '报告 BUG 或提出建议' },
             ];
