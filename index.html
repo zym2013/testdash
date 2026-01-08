@@ -119,6 +119,10 @@
             transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        .settings-nav.expanded {
+            left: 250px;
+        }
+
         .settings-nav-item {
             padding: 12px 20px;
             cursor: pointer;
@@ -654,6 +658,10 @@
                     <em>启用专注模式后，此处设置生效。</em>
                 </div>
                 <div class="setting-item">
+                    <label for="amlColorUpdateInterval">题目难度颜色请求间隔 (ms)</label>
+                    <input type="number" id="amlColorUpdateInterval" placeholder="300">
+                </div>
+                <div class="setting-item">
                     <label>犇犇屏蔽用户 ID (逗号分隔)</label>
                     <textarea id="amlBenbenBlockedUids" rows="2" placeholder="例如: 1,8457"></textarea>
                 </div>
@@ -688,6 +696,7 @@
                 updateUserInfo(useruid, username);
             }
         }, 500);
+        
         function updateUserInfo(uid, name) {
             const userInfo = document.getElementById('userInfo');
             const userAvatar = document.getElementById('userAvatar');
@@ -703,23 +712,21 @@
                 userInfo.style.display = 'none';
             }
         }
+        
         function updateWelcomeMessage() {
             const welcomeElement = document.querySelector('#home-section h2');
             if (welcomeElement) {
                 welcomeElement.innerHTML = `👏Hello, ${username}~👏`;
             }
         }
+        
         function gotolink(tolink) {
             window.location.href = tolink;
         }
+        
         function exportSettings() {
             const settings_ = JSON.parse(localStorage.getItem('aml_settings')||'{}');
-            const settings = defaultSettings;
-            for(const key in settings) {
-                if(!settings_[key]){
-                    settings[key] = settings_[key];
-                }
-            }
+            const settings = { ...defaultSettings, ...settings_ };
             const dataStr = JSON.stringify(settings, null, 2);
             const dataBlob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(dataBlob);
@@ -730,6 +737,7 @@
             URL.revokeObjectURL(url);
             showStatus('设置已导出', 'success');
         }
+        
         async function importSettings() {
             const input = document.createElement('input');
             input.type = 'file';
@@ -755,6 +763,8 @@
             };
             input.click();
         }
+        
+        // 完全匹配你提供的默认值
         const defaultSettings = {
             "amlProblemRandom": true,
             "amlPanelOpen": true,
@@ -767,7 +777,7 @@
             "amlCodeFolding": true,
             "amlAutoCheckIn": true,
             "amlCaptchaOCREndpoint": "http://8.140.166.24:44963/?base64=",
-            "amlColorUpdateInterval": 300,
+            "amlColorUpdateInterval": 300, // 保留默认值
             "amlMemoContent": "关注 zhangyimin12345 谢谢啦！",
             "amlMemoEnabled": true,
             "amlButtonUnlocker": true,
@@ -830,17 +840,22 @@
             "amlChatNotificationEnabled": true,
             "amlEmojiRenderingEnabled": true
         };
+        
         document.addEventListener('DOMContentLoaded', function () {
             setupSidebar();
             setupSettingsNav();
             renderThanksPage();
-            ['amlAutoReplyEnabled', 'amlCustomStyleEnabled', 'amlCustomFontEnabled', 'amlDefaultCodeEnabled', 'amlFocusModeEnabled'].forEach(key => {
+            // 绑定条件设置更新事件
+            ['amlAutoReplyEnabled', 'amlCustomStyleEnabled', 'amlCustomFontEnabled', 'amlDefaultCodeEnabled', 'amlFocusModeEnabled', 'amlMemoEnabled'].forEach(key => {
                 const element = document.getElementById(key);
                 if (element) {
                     element.addEventListener('change', updateConditionalSettings);
                 }
             });
+            // 初始化加载默认设置
+            loadSettings();
         });
+        
         function setupSidebar() {
             const sidebar = document.getElementById('sidebar');
             const settingsNav = document.getElementById('settings-nav');
@@ -848,12 +863,12 @@
                 sidebar.addEventListener('mouseenter', function () {
                     sidebar.classList.add('expanded');
                     document.body.classList.add('sidebar-expanded');
-                    settingsNav.classList.add('expanded');
+                    if(settingsNav) settingsNav.style.left = '250px';
                 });
                 sidebar.addEventListener('mouseleave', function () {
                     sidebar.classList.remove('expanded');
                     document.body.classList.remove('sidebar-expanded');
-                    settingsNav.classList.remove('expanded');
+                    if(settingsNav) settingsNav.style.left = '70px';
                 });
                 let touchStartTime;
                 sidebar.addEventListener('touchstart', function (event) {
@@ -864,11 +879,11 @@
                         if (sidebar.classList.contains('expanded')) {
                             sidebar.classList.remove('expanded');
                             document.body.classList.remove('sidebar-expanded');
-                            settingsNav.classList.remove('expanded');
+                            if(settingsNav) settingsNav.style.left = '70px';
                         } else {
                             sidebar.classList.add('expanded');
                             document.body.classList.add('sidebar-expanded');
-                            settingsNav.classList.add('expanded');
+                            if(settingsNav) settingsNav.style.left = '250px';
                         }
                     }
                 });
@@ -882,6 +897,7 @@
                 });
             }
         }
+        
         function setupSettingsNav() {
             const navItems = document.querySelectorAll('.settings-nav-item');
             navItems.forEach(item => {
@@ -893,6 +909,7 @@
                 });
             });
         }
+        
         function showPage(pageName) {
             document.querySelectorAll('.page-section').forEach(section => {
                 section.classList.remove('active');
@@ -908,6 +925,7 @@
                 contentArea.style.setProperty("margin-top", "50px", "important");
             }
         }
+        
         function showSection(sectionName) {
             if (!document.getElementById('settings-section').classList.contains('active')) {
                 showPage('settings');
@@ -917,6 +935,7 @@
             });
             document.getElementById(`${sectionName}-section`).style.display = 'block';
         }
+        
         function loadSettings(settings_ = defaultSettings) {
             const savedSettings = settings_;
             const settings = { ...defaultSettings, ...savedSettings };
@@ -934,6 +953,7 @@
             updateMemoSettingsUI();
             updateConditionalSettings();
         }
+        
         function saveSettings() {
             const settings = {};
             Object.keys(defaultSettings).forEach(key => {
@@ -942,17 +962,31 @@
                     if (element.type === 'checkbox') {
                         settings[key] = element.checked;
                     } else {
-                        settings[key] = element.value;
+                        // 对数字类型做特殊处理，确保是数值
+                        if (key === 'amlColorUpdateInterval') {
+                            settings[key] = parseInt(element.value) || defaultSettings[key];
+                        } else {
+                            settings[key] = element.value;
+                        }
                     }
+                } else {
+                    // 保留默认值（HTML中未显示的字段）
+                    settings[key] = defaultSettings[key];
                 }
             });
-            console.log(settings);
+            
             try {
-                settings['amlBenbenBlockedUids']=settings['amlBenbenBlockedUids'].split(',').map(uid => uid.trim()).filter(uid => uid !== '');
+                // 处理屏蔽UID的格式
+                if (settings['amlBenbenBlockedUids']) {
+                    settings['amlBenbenBlockedUids'] = settings['amlBenbenBlockedUids']
+                        .split(',')
+                        .map(uid => uid.trim())
+                        .filter(uid => uid !== '');
+                } else {
+                    settings['amlBenbenBlockedUids'] = [];
+                }
+                
                 localStorage.setItem('aml_settings', JSON.stringify(settings));
-                updateConditionalSettings();
-                updateMemoSettingsUI();
-                showStatus('设置已成功保存！', 'success');
                 const settingsEvent = new CustomEvent('pageMessage', {
                     detail: {
                         type: 'settingsUpdated',
@@ -960,15 +994,18 @@
                     }
                 });
                 document.dispatchEvent(settingsEvent);
+                loadSettings(settings);
+                showStatus('设置已成功保存！', 'success');
             } catch (e) {
                 console.error('保存设置失败:', e);
                 showStatus('保存失败: ' + e.message, 'error');
             }
         }
+        
         function showStatus(message, type) {
             const statusDiv = document.getElementById('statusMessage');
             if (statusDiv) {
-                statusDiv.style.display = '';
+                statusDiv.style.display = 'block';
                 statusDiv.textContent = message;
                 statusDiv.className = 'status-message ' + type;
                 setTimeout(() => {
@@ -976,17 +1013,30 @@
                 }, 3000);
             }
         }
+        
         function updateConditionalSettings() {
             const settings = JSON.parse(localStorage.getItem('aml_settings') || JSON.stringify(defaultSettings));
+            
+            // 处理自定义样式显示逻辑
             document.getElementById('aml-customcss-section').style.display = settings.amlCustomStyleEnabled ? 'block' : 'none';
             document.getElementById('aml-customcss-disabled-notice').style.display = settings.amlCustomStyleEnabled ? 'none' : 'block';
+            
+            // 处理自定义字体显示逻辑
             document.getElementById('aml-customfont-section').style.display = settings.amlCustomFontEnabled ? 'block' : 'none';
             document.getElementById('aml-customfont-disabled-notice').style.display = settings.amlCustomFontEnabled ? 'none' : 'block';
+            
+            // 处理默认代码显示逻辑
             document.getElementById('aml-defaultcode-section').style.display = settings.amlDefaultCodeEnabled ? 'block' : 'none';
             document.getElementById('aml-defaultcode-disabled-notice').style.display = settings.amlDefaultCodeEnabled ? 'none' : 'block';
+            
+            // 处理专注模式显示逻辑
             document.getElementById('aml-focusmode-section').style.display = settings.amlFocusModeEnabled ? 'block' : 'none';
             document.getElementById('aml-focusmode-disabled-notice').style.display = settings.amlFocusModeEnabled ? 'none' : 'block';
+            
+            // 处理备忘录显示逻辑
+            updateMemoSettingsUI();
         }
+        
         function updateMemoSettingsUI() {
             const memoEnabled = document.getElementById('amlMemoEnabled').checked;
             const contentSection = document.getElementById('aml-memo-content-section');
@@ -1000,7 +1050,7 @@
                 disabledNotice.style.display = 'block';
             }
         }
-        document.getElementById('amlMemoEnabled').addEventListener('change', updateMemoSettingsUI);
+        
         function renderThanksPage() {
             const thanksList = document.getElementById('thanks-list');
             if (!thanksList) return;
