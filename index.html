@@ -725,8 +725,16 @@
         }
         
         function exportSettings() {
+            // 获取本地存储的设置
             const settings_ = JSON.parse(localStorage.getItem('aml_settings')||'{}');
-            const settings = { ...defaultSettings, ...settings_ };
+            // 只保留 defaultSettings 中存在的键，过滤掉额外字段
+            const settings = {};
+            // 遍历默认配置的所有键
+            Object.keys(defaultSettings).forEach(key => {
+                // 如果本地有该键的值则使用，否则使用默认值
+                settings[key] = settings_.hasOwnProperty(key) ? settings_[key] : defaultSettings[key];
+            });
+            
             const dataStr = JSON.stringify(settings, null, 2);
             const dataBlob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(dataBlob);
@@ -1056,6 +1064,7 @@
             if (!thanksList) return;
             const contributors = [
                 { id: 749539, name: '__yun__', contribution: '报告许多 BUG 与提出许多建议' },
+                { id: 1157535, name: 'yangrenrui', contribution: '提供了搜索文章的代码~' },
                 { id: 542128, name: 'wing_heart', contribution: '报告 BUG 与提出建议' },
                 { id: 613794, name: 'jianhe', contribution: '报告 BUG 与提出建议' },
                 { id: 365751, name: 'Mr_罗', contribution: '提供了删除广告并将运势居中的代码~' },
