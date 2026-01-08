@@ -758,7 +758,7 @@
                         const settings = JSON.parse(e.target.result);
                         localStorage.setItem('aml_settings', JSON.stringify(settings));
                         const Event = new CustomEvent('pageMessage', {
-                            detail: { type: 'data', content: settings }
+                            detail: { type: 'data', data: settings }
                         });
                         document.dispatchEvent(Event);
                         loadSettings(settings);
